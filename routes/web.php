@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Admin\MenuController as AdminMenuController;  // ← was DishController
+use App\Http\Controllers\Admin\MenuController as AdminMenuController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -14,9 +15,9 @@ Route::get('/', function () {
 });
 
 // ── Customer dashboard ────────────────────────────────────────────────────────
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 // ── Customer routes ───────────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -58,7 +59,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     // Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
-    // Dish management  ← now uses AdminMenuController (the file that actually exists)
+    // Dish management
     Route::get('/menu',             [AdminMenuController::class, 'index'])->name('menu.index');
     Route::get('/menu/create',      [AdminMenuController::class, 'create'])->name('menu.create');
     Route::post('/menu',            [AdminMenuController::class, 'store'])->name('menu.store');

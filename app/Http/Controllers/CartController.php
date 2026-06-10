@@ -35,11 +35,15 @@ class CartController extends Controller
             ]);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => $dish->name . ' added to cart!',
-            'cartCount' => auth()->user()->cartItems()->count(),
-        ]);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $dish->name . ' added to cart!',
+                'cartCount' => auth()->user()->cartItems()->count(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', $dish->name . ' added to cart!');
     }
 
     public function remove($cartItemId)

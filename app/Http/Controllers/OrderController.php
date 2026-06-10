@@ -7,6 +7,46 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+    // Customer - Dashboard
+    public function dashboard()
+    {
+        $user = auth()->user();
+
+        $orders = $user->orders()->with('items.dish')->latest()->get();
+
+        // Stat cards
+        $totalOrders = $orders->count();
+
+        $totalSpent = $orders->where('status', '!=', 'cancelled')->sum('total');
+
+        $activeOrder = $orders->whereNotIn('status', ['delivered', 'cancelled'])->first();
+
+        $recentOrders = $orders->take(5);
+
+        // Quick reorder — top 4 most ordered dishes by this customer
+        $topDishes = $user->orders()
+            ->with('items.dish')
+            ->where('status', 'delivered')
+            ->get()
+            ->flatMap(fn($o) => $o->items)
+            ->groupBy('dish_id')
+            ->map(fn($items) => [
+                'dish'  => $items->first()->dish,
+                'count' => $items->sum('quantity'),
+            ])
+            ->sortByDesc('count')
+            ->take(4)
+            ->values();
+
+        return view('dashboard', compact(
+            'totalOrders',
+            'totalSpent',
+            'activeOrder',
+            'recentOrders',
+            'topDishes'
+        ));
+    }
+
     // Customer - View all their orders
     public function index()
     {
