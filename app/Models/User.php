@@ -22,7 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',          // ← added
+        'role',
     ];
 
     /**
@@ -48,6 +48,18 @@ class User extends Authenticatable
         ];
     }
 
+    // ── Relationships ─────────────────────────────────────────────
+
+    public function cartItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Cart::class);
+    }
+
+    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
     // ── Role helpers ──────────────────────────────────────────────
 
     public function isAdmin(): bool
@@ -59,8 +71,4 @@ class User extends Authenticatable
     {
         return $this->role === 'customer';
     }
-    public function cartItems()
-{
-    return $this->hasMany(Cart::class);
-}
 }

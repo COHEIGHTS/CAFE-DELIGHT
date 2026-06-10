@@ -10,7 +10,7 @@ class OrderController extends Controller
     // Customer - View all their orders
     public function index()
     {
-        $orders = auth()->user()->orders()->latest()->paginate(10);
+        $orders = auth()->user()->orders()->with('items.dish')->latest()->paginate(10);
         return view('order.index', compact('orders'));
     }
 
@@ -20,6 +20,9 @@ class OrderController extends Controller
         if ($order->user_id !== auth()->id()) {
             abort(403);
         }
+
+        $order->load('items.dish');
+
         return view('order.confirmation', compact('order'));
     }
 
@@ -38,11 +41,18 @@ class OrderController extends Controller
         return back()->with('success', 'Order cancelled successfully');
     }
 
-    // Admin - View all orders
-    public function adminIndex()
+    // Admin - View all orders with filters
+    public function adminIndex(Request $request)
     {
-        $orders = Order::latest()->paginate(15);
-        return view('admin.order.index', compact('orders'));
+        $query = Order::with('user', 'items.dish')->latest();
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $orders = $query->paginate(15)->withQueryString();
+
+        return view('admin.orders', compact('orders'));
     }
 
     // Admin - Update order status
@@ -54,6 +64,14 @@ class OrderController extends Controller
 
         $order->update($validated);
 
-        return back()->with('success', 'Order status updated successfully');
+        $labels = [
+            'confirmed'  => 'Order confirmed.',
+            'preparing'  => 'Order is now being prepared.',
+            'on_the_way' => 'Order is out for delivery.',
+            'delivered'  => 'Order marked as delivered.',
+            'cancelled'  => 'Order cancelled.',
+        ];
+
+        return back()->with('success', $labels[$request->status] ?? 'Order status updated successfully');
     }
 }

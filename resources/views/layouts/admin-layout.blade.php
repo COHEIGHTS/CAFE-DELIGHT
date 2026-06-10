@@ -45,7 +45,6 @@
         .glass-strong { background:rgba(255,255,255,0.85); backdrop-filter:blur(22px) saturate(180%); -webkit-backdrop-filter:blur(22px) saturate(180%); }
         .dark .glass-strong { background:rgba(20,17,15,0.85); }
         .text-gradient { background:linear-gradient(120deg,#fb923c,#ea580c 40%,#e6b450); -webkit-background-clip:text; background-clip:text; color:transparent; }
-        /* admin mesh — slightly cooler tint to visually differ from customer */
         .mesh {
             background:
                 radial-gradient(40rem 40rem at 100% 0%,   rgba(234,88,12,0.14),  transparent 60%),
@@ -84,7 +83,6 @@
             {{-- Nav --}}
             <nav class="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
 
-                {{-- Section label --}}
                 <p x-show="!collapsed" class="mb-2 px-3 text-[10px] font-extrabold uppercase tracking-widest text-ink/35 dark:text-orange-50/35">Overview</p>
                 <template x-for="item in nav.overview" :key="item.label">
                     <a :href="item.href"
@@ -115,7 +113,7 @@
                         <span x-show="!collapsed" x-transition x-text="item.label" class="truncate"></span>
                         <span x-show="!collapsed && item.badge" x-transition
                               class="ml-auto rounded-full px-2 py-0.5 text-xs font-bold"
-                              :class="active === item.label ? 'bg-white/25 text-white' : 'bg-brand-500/15 text-brand-600'"
+                              :class="active === item.label ? 'bg-white/25 text-white' : 'bg-amber-500/15 text-amber-600'"
                               x-text="item.badge"></span>
                     </a>
                 </template>
@@ -186,7 +184,7 @@
                             : 'text-ink/65 hover:bg-brand-500/10 hover:text-brand-600 dark:text-orange-50/65'">
                         <i :data-lucide="item.icon" class="h-5 w-5"></i>
                         <span x-text="item.label"></span>
-                        <span x-show="item.badge" class="ml-auto rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-bold text-brand-600" x-text="item.badge"></span>
+                        <span x-show="item.badge" class="ml-auto rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-600" x-text="item.badge"></span>
                     </a>
                 </template>
             </nav>
@@ -224,6 +222,19 @@
                     <p class="text-sm font-extrabold" x-text="active"></p>
                 </div>
 
+                {{-- ── Pending orders quick-link pill (shows when there are pending orders) ── --}}
+                @php $pendingCount = \App\Models\Order::where('status','pending')->count(); @endphp
+                @if($pendingCount > 0)
+                <a href="{{ route('admin.order.index', ['status' => 'pending']) }}"
+                   class="hidden sm:flex items-center gap-2 rounded-full bg-amber-500/15 border border-amber-500/25 px-3 py-1.5 text-xs font-extrabold text-amber-600 transition hover:bg-amber-500/25">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                    {{ $pendingCount }} pending {{ Str::plural('order', $pendingCount) }}
+                </a>
+                @endif
+
                 <div class="ml-auto flex items-center gap-2">
 
                     {{-- Dark mode --}}
@@ -237,7 +248,9 @@
                     {{-- Notifications --}}
                     <button class="relative grid h-10 w-10 place-items-center rounded-xl glass transition hover:scale-105" aria-label="Notifications">
                         <i data-lucide="bell" class="h-5 w-5"></i>
+                        @if($pendingCount > 0)
                         <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-ink"></span>
+                        @endif
                     </button>
 
                     {{-- Admin user menu --}}
@@ -301,8 +314,9 @@
                         { label: 'Analytics',  icon: 'bar-chart-2',      href: '#',                              badge: '' },
                     ],
                     manage: [
-                        { label: 'Orders',     icon: 'shopping-bag',     href: '#', badge: '12' },
-                        { label: 'Menu Items', icon: 'utensils',         href: '{{ route('admin.menu.index') }}', badge: '' },
+                        // ── Orders: href now points to the real route; badge shows live pending count ──
+                        { label: 'Orders',     icon: 'shopping-bag',     href: '{{ route('admin.order.index') }}', badge: '{{ \App\Models\Order::where('status','pending')->count() ?: '' }}' },
+                        { label: 'Menu Items', icon: 'utensils',         href: '{{ route('admin.menu.index') }}',  badge: '' },
                         { label: 'Add Dish',   icon: 'plus-circle',      href: '{{ route('admin.menu.create') }}', badge: '' },
                         { label: 'Customers',  icon: 'users',            href: '#', badge: '' },
                         { label: 'Staff',      icon: 'user-check',       href: '#', badge: '' },

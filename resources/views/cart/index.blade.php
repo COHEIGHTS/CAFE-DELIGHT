@@ -92,9 +92,11 @@
                     <span class="text-2xl font-extrabold text-gradient">KSh {{ number_format($total + 200 + ($total * 0.16), 0) }}</span>
                 </div>
 
-                <button class="w-full bg-gradient-to-r from-brand-600 to-brand-700 text-white font-bold py-3 rounded-xl hover:shadow-glow transition mb-3">
+                {{-- ↓ CHANGED: button → anchor tag routed to checkout.index --}}
+                <a href="{{ route('checkout.index') }}"
+                   class="block w-full text-center bg-gradient-to-r from-brand-600 to-brand-700 text-white font-bold py-3 rounded-xl hover:shadow-glow transition mb-3">
                     Proceed to Checkout
-                </button>
+                </a>
 
                 <a href="{{ route('menu.index') }}" class="block w-full text-center bg-black/5 dark:bg-white/10 text-ink dark:text-orange-50 font-bold py-3 rounded-xl hover:scale-105 transition">
                     Continue Shopping
