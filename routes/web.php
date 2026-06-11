@@ -8,6 +8,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FavoriteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -34,6 +35,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/cart/{cartItem}', [CartController::class, 'update'])->name('cart.update');
     Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
     Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+
+    // Favorites
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/favorites/toggle/{dish}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::get('/favorites/count', [FavoriteController::class, 'count'])->name('favorites.count');
 
     // Checkout
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');

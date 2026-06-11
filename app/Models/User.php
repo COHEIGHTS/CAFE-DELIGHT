@@ -44,7 +44,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
     }
 
@@ -58,6 +58,11 @@ class User extends Authenticatable
     public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function favorites(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Favorite::class);
     }
 
     // ── Role helpers ──────────────────────────────────────────────

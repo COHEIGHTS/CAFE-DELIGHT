@@ -18,7 +18,7 @@
 
     {{-- ===== Category Filter ===== --}}
     <div class="flex flex-wrap gap-2 pb-4 overflow-x-auto" data-aos="fade-up" data-aos-delay="100">
-        <a href="{{ route('menu.index') }}" 
+        <a href="{{ route('menu.index') }}"
            class="inline-flex items-center gap-2 rounded-full px-4 py-2.5 font-semibold whitespace-nowrap transition
            {{ !isset($activeCategory) ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-glow' : 'bg-black/5 dark:bg-white/10 text-ink dark:text-orange-50 hover:bg-brand-500/10' }}">
             <i data-lucide="grid" class="w-4 h-4"></i>
@@ -26,25 +26,15 @@
         </a>
 
         @foreach($categories as $category)
-        <a href="{{ route('menu.category', $category) }}" 
+        <a href="{{ route('menu.category', $category) }}"
            class="inline-flex items-center gap-2 rounded-full px-4 py-2.5 font-semibold whitespace-nowrap transition
            {{ isset($activeCategory) && $activeCategory === $category ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-glow' : 'bg-black/5 dark:bg-white/10 text-ink dark:text-orange-50 hover:bg-brand-500/10' }}">
             @switch($category)
-                @case('mains')
-                    <i data-lucide="utensils" class="w-4 h-4"></i> Main Courses
-                    @break
-                @case('appetizers')
-                    <i data-lucide="cherry" class="w-4 h-4"></i> Appetizers
-                    @break
-                @case('desserts')
-                    <i data-lucide="cake" class="w-4 h-4"></i> Desserts
-                    @break
-                @case('beverages')
-                    <i data-lucide="wine" class="w-4 h-4"></i> Beverages
-                    @break
-                @case('sides')
-                    <i data-lucide="pizza" class="w-4 h-4"></i> Sides
-                    @break
+                @case('mains')     <i data-lucide="utensils" class="w-4 h-4"></i> Main Courses @break
+                @case('appetizers')<i data-lucide="cherry"   class="w-4 h-4"></i> Appetizers   @break
+                @case('desserts')  <i data-lucide="cake"     class="w-4 h-4"></i> Desserts      @break
+                @case('beverages') <i data-lucide="wine"     class="w-4 h-4"></i> Beverages     @break
+                @case('sides')     <i data-lucide="pizza"    class="w-4 h-4"></i> Sides         @break
             @endswitch
         </a>
         @endforeach
@@ -54,13 +44,15 @@
     @if($dishes->count() > 0)
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($dishes as $dish)
-            <div class="group rounded-2xl glass overflow-hidden shadow-soft hover:shadow-premium transition" 
+            @php $isFav = $userFavorites->contains($dish->id); @endphp
+            <div class="group rounded-2xl glass overflow-hidden shadow-soft hover:shadow-premium transition"
                  data-aos="fade-up" data-aos-delay="{{ ($loop->index % 3) * 50 }}">
-                
+
                 {{-- Image --}}
                 <div class="relative h-48 bg-gradient-to-br from-brand-300 to-brand-500 overflow-hidden">
                     @if($dish->primary_image)
-                        <img src="{{ asset('storage/' . $dish->primary_image) }}" alt="{{ $dish->name }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                        <img src="{{ asset('storage/' . $dish->primary_image) }}" alt="{{ $dish->name }}"
+                             class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
                     @else
                         <div class="w-full h-full flex items-center justify-center">
                             <i data-lucide="image" class="w-12 h-12 text-white/50"></i>
@@ -74,13 +66,11 @@
                             ⭐ Best
                         </span>
                         @endif
-
                         @if($dish->is_vegetarian)
                         <span class="inline-flex items-center gap-1 rounded-full bg-green-500/90 text-white px-2 py-1 text-xs font-bold backdrop-blur-sm">
                             🌱
                         </span>
                         @endif
-
                         @if($dish->is_spicy)
                         <span class="inline-flex items-center gap-1 rounded-full bg-red-500/90 text-white px-2 py-1 text-xs font-bold backdrop-blur-sm">
                             🌶️
@@ -95,7 +85,8 @@
                             <i data-lucide="plus" class="w-4 h-4"></i>
                             Add to Cart
                         </button>
-                        <a href="{{ route('menu.show', $dish->id) }}" class="inline-flex items-center gap-2 bg-brand-600 text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition">
+                        <a href="{{ route('menu.show', $dish->id) }}"
+                           class="inline-flex items-center gap-2 bg-brand-600 text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition">
                             <i data-lucide="eye" class="w-4 h-4"></i>
                             View Details
                         </a>
@@ -107,7 +98,7 @@
                     <h3 class="font-bold text-lg mb-1">{{ $dish->name }}</h3>
                     <p class="text-sm text-ink/60 dark:text-orange-50/60 mb-3 line-clamp-2">{{ $dish->description }}</p>
 
-                    {{-- Features Tags --}}
+                    {{-- Feature Tags --}}
                     <div class="flex flex-wrap gap-1 mb-3">
                         @if($dish->is_vegan)
                             <span class="text-xs bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300 px-2 py-1 rounded-full font-semibold">🥗 Vegan</span>
@@ -128,8 +119,13 @@
                                 <p class="text-xs text-ink/50 dark:text-orange-50/50 mt-1">⏱️ {{ $dish->prep_time }} mins</p>
                             @endif
                         </div>
-                        <button class="grid h-9 w-9 place-items-center rounded-lg bg-brand-500/15 text-brand-600 hover:bg-brand-500/25 transition">
-                            <i data-lucide="heart" class="w-5 h-5"></i>
+                        {{-- Heart button --}}
+                        <button onclick="toggleFavorite({{ $dish->id }}, this)"
+                                class="grid h-9 w-9 place-items-center rounded-lg bg-brand-500/10 hover:bg-red-500/15 transition"
+                                title="{{ $isFav ? 'Remove from favorites' : 'Add to favorites' }}">
+                            <i data-lucide="heart"
+                               data-dish-fav="{{ $dish->id }}"
+                               class="w-5 h-5 transition-colors {{ $isFav ? 'fill-red-500 text-red-500' : 'text-brand-600' }}"></i>
                         </button>
                     </div>
                 </div>
@@ -137,7 +133,6 @@
             @endforeach
         </div>
     @else
-        {{-- Empty State --}}
         <div class="text-center py-12 rounded-2xl glass p-8 shadow-soft" data-aos="fade-up">
             <i data-lucide="inbox" class="w-16 h-16 text-black/20 dark:text-white/20 mx-auto mb-4"></i>
             <p class="text-ink/60 dark:text-orange-50/60 mb-2 font-semibold text-lg">No dishes available</p>
@@ -155,43 +150,24 @@
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 'Content-Type': 'application/json',
+                'Accept':       'application/json',
             },
             body: JSON.stringify({ quantity })
         })
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                showToast(data.message);
-                updateCartCount();
+                updateCartCount(data.cartCount);
+                showFavToast(data.message, false);
             }
         })
-        .catch(err => console.error(err));
-    }
-
-    function updateCartCount() {
-        fetch('/cart/count')
-            .then(r => r.json())
-            .then(data => {
-                const cartBadge = document.getElementById('cart-count');
-                if (cartBadge) {
-                    cartBadge.textContent = data.count;
-                    cartBadge.style.display = data.count > 0 ? 'flex' : 'none';
-                }
-            });
-    }
-
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg font-semibold shadow-lg z-50';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => toast.remove(), 3000);
+        .catch(() => {});
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         if (window.lucide) lucide.createIcons();
         updateCartCount();
+        updateFavoriteCount();
     });
 </script>
 @endpush

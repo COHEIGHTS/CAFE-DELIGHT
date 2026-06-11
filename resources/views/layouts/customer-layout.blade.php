@@ -51,6 +51,15 @@
         }
         ::-webkit-scrollbar { width:9px; height:9px; }
         ::-webkit-scrollbar-thumb { background:linear-gradient(#f97316,#ea580c); border-radius:99px; border:2px solid transparent; background-clip:content-box; }
+
+        /* Heart pop animation */
+        @keyframes heartPop {
+            0%   { transform: scale(1); }
+            40%  { transform: scale(1.4); }
+            70%  { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+        .heart-pop { animation: heartPop 0.4s ease forwards; }
     </style>
 
     @stack('styles')
@@ -87,7 +96,15 @@
                        :title="collapsed ? item.label : ''">
                         <i :data-lucide="item.icon" class="h-5 w-5 shrink-0"></i>
                         <span x-show="!collapsed" x-transition x-text="item.label" class="truncate"></span>
-                        <span x-show="!collapsed && item.badge" x-transition
+                        {{-- Dynamic badge (favorites count) --}}
+                        <span x-show="!collapsed && item.badgeDynamic"
+                              x-transition
+                              :id="item.badgeId"
+                              class="ml-auto rounded-full px-2 py-0.5 text-xs font-bold hidden"
+                              :class="active === item.label ? 'bg-white/25 text-white' : 'bg-brand-500/15 text-brand-600'"></span>
+                        {{-- Static badge --}}
+                        <span x-show="!collapsed && item.badge && !item.badgeDynamic"
+                              x-transition
                               class="ml-auto rounded-full px-2 py-0.5 text-xs font-bold"
                               :class="active === item.label ? 'bg-white/25 text-white' : 'bg-brand-500/15 text-brand-600'"
                               x-text="item.badge"></span>
@@ -152,7 +169,10 @@
                             : 'text-ink/65 hover:bg-brand-500/10 hover:text-brand-600 dark:text-orange-50/65'">
                         <i :data-lucide="item.icon" class="h-5 w-5"></i>
                         <span x-text="item.label"></span>
-                        <span x-show="item.badge"
+                        <span x-show="item.badgeDynamic"
+                              :id="'m-' + item.badgeId"
+                              class="ml-auto rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-bold text-brand-600 hidden"></span>
+                        <span x-show="item.badge && !item.badgeDynamic"
                               class="ml-auto rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-bold text-brand-600"
                               x-text="item.badge"></span>
                     </a>
@@ -175,7 +195,6 @@
             {{-- ===== TOP BAR ===== --}}
             <header class="sticky top-0 z-30 flex h-20 items-center gap-3 border-b border-black/5 glass px-4 sm:px-6 dark:border-white/5">
 
-                {{-- Collapse (desktop) / open drawer (mobile) --}}
                 <button x-on:click="collapsed = !collapsed"
                         class="hidden h-10 w-10 place-items-center rounded-xl glass lg:grid transition hover:scale-105"
                         aria-label="Collapse sidebar">
@@ -196,7 +215,7 @@
 
                 <div class="ml-auto flex items-center gap-2">
 
-                    {{-- Dark mode toggle --}}
+                    {{-- Dark mode --}}
                     <button x-on:click="toggleDark()"
                             class="grid h-10 w-10 place-items-center rounded-xl glass transition hover:scale-105"
                             aria-label="Toggle dark mode">
@@ -210,10 +229,22 @@
                         <span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-white dark:ring-ink"></span>
                     </button>
 
+                    {{-- Favorites shortcut --}}
+                    <a href="{{ route('favorites.index') }}"
+                       class="relative grid h-10 w-10 place-items-center rounded-xl glass transition hover:scale-105"
+                       aria-label="Favorites">
+                        <i data-lucide="heart" class="h-5 w-5"></i>
+                        <span id="fav-topbar-count"
+                              class="absolute right-2 top-2 h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold grid place-items-center hidden">0</span>
+                    </a>
+
                     {{-- Cart --}}
-                    <a href="{{ route('cart.index') }}" class="relative grid h-10 w-10 place-items-center rounded-xl glass transition hover:scale-105" aria-label="Cart">
+                    <a href="{{ route('cart.index') }}"
+                       class="relative grid h-10 w-10 place-items-center rounded-xl glass transition hover:scale-105"
+                       aria-label="Cart">
                         <i data-lucide="shopping-bag" class="h-5 w-5"></i>
-                        <span id="cart-count" class="absolute right-2 top-2 h-5 w-5 rounded-full bg-brand-500 text-white text-xs font-bold grid place-items-center hidden">0</span>
+                        <span id="cart-count"
+                              class="absolute right-2 top-2 h-5 w-5 rounded-full bg-brand-500 text-white text-xs font-bold grid place-items-center hidden">0</span>
                     </a>
 
                     {{-- User menu --}}
@@ -234,6 +265,9 @@
                             </a>
                             <a href="{{ route('order.index') }}" class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition hover:bg-brand-500/10 hover:text-brand-600">
                                 <i data-lucide="shopping-bag" class="h-4 w-4"></i> My Orders
+                            </a>
+                            <a href="{{ route('favorites.index') }}" class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition hover:bg-brand-500/10 hover:text-brand-600">
+                                <i data-lucide="heart" class="h-4 w-4"></i> Favorites
                             </a>
                             <a href="#" class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition hover:bg-brand-500/10 hover:text-brand-600">
                                 <i data-lucide="settings" class="h-4 w-4"></i> Settings
@@ -272,14 +306,14 @@
                 active: '{{ $activeNav ?? 'Dashboard' }}',
 
                 nav: [
-                    { label:'Dashboard', icon:'layout-dashboard', href:'{{ route('dashboard') }}',       badge:'' },
-                    { label:'My Orders', icon:'shopping-bag',     href:'{{ route('order.index') }}',     badge:'' },
-                    { label:'Menu',      icon:'utensils',         href:'{{ route('menu.index') }}',       badge:'' },
-                    { label:'Favorites', icon:'heart',            href:'#',                              badge:'8' },
-                    { label:'Addresses', icon:'map-pin',          href:'#',                              badge:'' },
-                    { label:'Payments',  icon:'credit-card',      href:'#',                              badge:'' },
-                    { label:'Profile',   icon:'user',             href:'#',                              badge:'' },
-                    { label:'Settings',  icon:'settings',         href:'#',                              badge:'' },
+                    { label:'Dashboard', icon:'layout-dashboard', href:'{{ route('dashboard') }}',        badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'My Orders', icon:'shopping-bag',     href:'{{ route('order.index') }}',      badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'Menu',      icon:'utensils',         href:'{{ route('menu.index') }}',        badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'Favorites', icon:'heart',            href:'{{ route('favorites.index') }}',   badge:'', badgeDynamic:true,  badgeId:'fav-sidebar-count' },
+                    { label:'Addresses', icon:'map-pin',          href:'#',                               badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'Payments',  icon:'credit-card',      href:'#',                               badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'Profile',   icon:'user',             href:'#',                               badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'Settings',  icon:'settings',         href:'#',                               badge:'', badgeDynamic:false, badgeId:'' },
                 ],
 
                 init() {
@@ -295,8 +329,8 @@
                         this.$watch(prop, () => this.$nextTick(() => lucide.createIcons()))
                     );
 
-                    // Initialize cart count on load
                     updateCartCount();
+                    updateFavoriteCount();
                 },
 
                 toggleDark() {
@@ -306,17 +340,97 @@
             }
         }
 
-        function updateCartCount() {
-            fetch('/cart/count')
-                .then(r => r.json())
-                .then(data => {
-                    const cartBadge = document.getElementById('cart-count');
-                    if (cartBadge) {
-                        cartBadge.textContent = data.count;
-                        cartBadge.style.display = data.count > 0 ? 'flex' : 'none';
-                    }
-                })
-                .catch(err => console.error('Cart count error:', err));
+        /* ── Cart badge ─────────────────────────────────── */
+        function updateCartCount(count = null) {
+            if (count !== null) { applyCartCount(count); return; }
+            fetch('/cart/count', { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json()).then(d => applyCartCount(d.count)).catch(() => {});
+        }
+        function applyCartCount(count) {
+            const badge = document.getElementById('cart-count');
+            if (!badge) return;
+            badge.textContent   = count;
+            badge.style.display = count > 0 ? 'grid' : 'none';
+        }
+
+        /* ── Favorites badge ────────────────────────────── */
+        function updateFavoriteCount(count = null) {
+            if (count !== null) { applyFavoriteCount(count); return; }
+            fetch('/favorites/count', { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json()).then(d => applyFavoriteCount(d.count)).catch(() => {});
+        }
+        function applyFavoriteCount(count) {
+            // Topbar heart badge
+            const topbar = document.getElementById('fav-topbar-count');
+            if (topbar) {
+                topbar.textContent   = count;
+                topbar.style.display = count > 0 ? 'grid' : 'none';
+            }
+            // Sidebar badge (desktop)
+            const sidebar = document.getElementById('fav-sidebar-count');
+            if (sidebar) {
+                sidebar.textContent = count;
+                sidebar.style.display = count > 0 ? 'inline-flex' : 'none';
+            }
+            // Sidebar badge (mobile)
+            const sidebarM = document.getElementById('m-fav-sidebar-count');
+            if (sidebarM) {
+                sidebarM.textContent = count;
+                sidebarM.style.display = count > 0 ? 'inline-flex' : 'none';
+            }
+        }
+
+        /* ── Toggle favorite (global, used in menu & show) ─ */
+        function toggleFavorite(dishId, btnEl) {
+            fetch(`/favorites/toggle/${dishId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json',
+                    'Accept':       'application/json',
+                },
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) return;
+
+                // Update all heart buttons for this dish across the page
+                document.querySelectorAll(`[data-dish-fav="${dishId}"]`).forEach(icon => {
+                    icon.classList.toggle('fill-red-500', data.favorited);
+                    icon.classList.toggle('text-red-500',  data.favorited);
+                    // Pop animation
+                    icon.classList.remove('heart-pop');
+                    void icon.offsetWidth; // reflow
+                    icon.classList.add('heart-pop');
+                });
+
+                updateFavoriteCount(data.favoriteCount);
+                showFavToast(data.message, data.favorited);
+            })
+            .catch(() => {});
+        }
+
+        /* ── Favorite toast ─────────────────────────────── */
+        function showFavToast(message, favorited = true) {
+            document.querySelectorAll('.fav-toast').forEach(t => t.remove());
+            const toast = document.createElement('div');
+            toast.className = [
+                'fav-toast fixed bottom-6 right-6 z-50',
+                'flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl',
+                'text-white font-semibold text-sm',
+                favorited ? 'bg-red-500' : 'bg-gray-600',
+                'opacity-0 translate-y-2 transition-all duration-300',
+            ].join(' ');
+            toast.innerHTML = `<span>${favorited ? '❤️' : '🤍'}</span><span>${message}</span>`;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                toast.classList.replace('opacity-0', 'opacity-100');
+                toast.classList.replace('translate-y-2', 'translate-y-0');
+            }));
+            setTimeout(() => {
+                toast.classList.replace('opacity-100', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
         }
     </script>
 
