@@ -9,6 +9,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\AddressController; // ✅ ADDED
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -41,7 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/favorites/toggle/{dish}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
     Route::get('/favorites/count', [FavoriteController::class, 'count'])->name('favorites.count');
 
-    // Checkout
+    // Checkout (FIXED - only once)
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 
@@ -50,6 +51,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/orders/success', fn () => view('order-success'))->name('orders.success');
     Route::get('/order/{order}', [OrderController::class, 'show'])->name('order.confirmation');
     Route::post('/order/{order}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+
+    // ── Addresses (ADDED HERE) ────────────────────────────────────────────────
+    Route::prefix('addresses')->name('addresses.')->group(function () {
+        Route::get('/',                       [AddressController::class, 'index'])->name('index');
+        Route::get('/create',                 [AddressController::class, 'create'])->name('create');
+        Route::post('/',                      [AddressController::class, 'store'])->name('store');
+        Route::get('/{address}/edit',         [AddressController::class, 'edit'])->name('edit');
+        Route::put('/{address}',              [AddressController::class, 'update'])->name('update');
+        Route::delete('/{address}',           [AddressController::class, 'destroy'])->name('destroy');
+        Route::post('/{address}/set-default', [AddressController::class, 'setDefault'])->name('default');
+    });
 });
 
 // ── Profile ───────────────────────────────────────────────────────────────────
@@ -60,22 +72,25 @@ Route::middleware('auth')->group(function () {
 });
 
 // ── Admin routes ──────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
 
-    // Dashboard
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        // Dashboard
+        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
-    // Dish management
-    Route::get('/menu',             [AdminMenuController::class, 'index'])->name('menu.index');
-    Route::get('/menu/create',      [AdminMenuController::class, 'create'])->name('menu.create');
-    Route::post('/menu',            [AdminMenuController::class, 'store'])->name('menu.store');
-    Route::get('/menu/{id}/edit',   [AdminMenuController::class, 'edit'])->name('menu.edit');
-    Route::put('/menu/{id}',        [AdminMenuController::class, 'update'])->name('menu.update');
-    Route::delete('/menu/{id}',     [AdminMenuController::class, 'destroy'])->name('menu.destroy');
+        // Dish management
+        Route::get('/menu',             [AdminMenuController::class, 'index'])->name('menu.index');
+        Route::get('/menu/create',      [AdminMenuController::class, 'create'])->name('menu.create');
+        Route::post('/menu',            [AdminMenuController::class, 'store'])->name('menu.store');
+        Route::get('/menu/{id}/edit',   [AdminMenuController::class, 'edit'])->name('menu.edit');
+        Route::put('/menu/{id}',        [AdminMenuController::class, 'update'])->name('menu.update');
+        Route::delete('/menu/{id}',     [AdminMenuController::class, 'destroy'])->name('menu.destroy');
 
-    // Order management
-    Route::get('/orders',                    [OrderController::class, 'adminIndex'])->name('order.index');
-    Route::patch('/order/{order}/status',    [OrderController::class, 'updateStatus'])->name('order.updateStatus');
-});
+        // Order management
+        Route::get('/orders',                 [OrderController::class, 'adminIndex'])->name('order.index');
+        Route::patch('/order/{order}/status', [OrderController::class, 'updateStatus'])->name('order.updateStatus');
+    });
 
 require __DIR__.'/auth.php';

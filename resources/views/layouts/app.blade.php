@@ -306,14 +306,14 @@
                 active: '{{ $activeNav ?? 'Dashboard' }}',
 
                 nav: [
-                    { label:'Dashboard', icon:'layout-dashboard', href:'{{ route('dashboard') }}',        badge:'', badgeDynamic:false, badgeId:'' },
-                    { label:'My Orders', icon:'shopping-bag',     href:'{{ route('order.index') }}',      badge:'', badgeDynamic:false, badgeId:'' },
-                    { label:'Menu',      icon:'utensils',         href:'{{ route('menu.index') }}',        badge:'', badgeDynamic:false, badgeId:'' },
-                    { label:'Favorites', icon:'heart',            href:'{{ route('favorites.index') }}',   badge:'', badgeDynamic:true,  badgeId:'fav-sidebar-count' },
-                    { label:'Addresses', icon:'map-pin',          href:'#',                               badge:'', badgeDynamic:false, badgeId:'' },
-                    { label:'Payments',  icon:'credit-card',      href:'#',                               badge:'', badgeDynamic:false, badgeId:'' },
-                    { label:'Profile',   icon:'user',             href:'#',                               badge:'', badgeDynamic:false, badgeId:'' },
-                    { label:'Settings',  icon:'settings',         href:'#',                               badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'Dashboard', icon:'layout-dashboard', href:'{{ route('dashboard') }}',          badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'My Orders', icon:'shopping-bag',     href:'{{ route('order.index') }}',        badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'Menu',      icon:'utensils',         href:'{{ route('menu.index') }}',          badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'Favorites', icon:'heart',            href:'{{ route('favorites.index') }}',     badge:'', badgeDynamic:true,  badgeId:'fav-sidebar-count' },
+                    { label:'Addresses', icon:'map-pin',          href:'{{ route('addresses.index') }}',     badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'Payments',  icon:'credit-card',      href:'#',                                 badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'Profile',   icon:'user',             href:'#',                                 badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'Settings',  icon:'settings',         href:'#',                                 badge:'', badgeDynamic:false, badgeId:'' },
                 ],
 
                 init() {
@@ -436,4 +436,4 @@
 
     @stack('scripts')
 </body>
-</html>s
+</html>
