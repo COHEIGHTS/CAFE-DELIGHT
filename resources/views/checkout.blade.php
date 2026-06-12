@@ -236,6 +236,51 @@
                               class="w-full rounded-xl border-0 glass py-3 px-4 text-sm font-medium placeholder:text-ink/40 focus:ring-2 focus:ring-brand-500 dark:placeholder:text-orange-50/30 resize-none">{{ old('special_instructions') }}</textarea>
                 </div>
 
+                {{-- ── Payment Method ── --}}
+                <div data-aos="fade-up" class="rounded-3xl glass p-6 shadow-soft">
+                    <h2 class="mb-5 flex items-center gap-2 text-lg font-extrabold">
+                        <span class="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 text-white">
+                            <i data-lucide="credit-card" class="h-5 w-5"></i>
+                        </span>
+                        Payment Method
+                    </h2>
+                    <div class="space-y-3">
+                        <label class="flex cursor-pointer items-start gap-4 rounded-2xl p-4 glass transition ring-1 ring-black/5 dark:ring-white/8 hover:ring-brand-500/40">
+                            <input type="radio"
+                                   name="payment_method"
+                                   value="mpesa"
+                                   checked
+                                   class="mt-1 accent-brand-500 shrink-0">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-extrabold">M-Pesa</span>
+                                    <span class="rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-bold text-brand-600">Recommended</span>
+                                </div>
+                                <p class="mt-1 text-xs text-ink/55 dark:text-orange-50/55">
+                                    Pay using the phone number from your delivery address. You'll receive an STK prompt to confirm payment.
+                                </p>
+                            </div>
+                        </label>
+                        <label class="flex cursor-pointer items-start gap-4 rounded-2xl p-4 glass transition ring-1 ring-black/5 dark:ring-white/8 hover:ring-brand-500/40">
+                            <input type="radio"
+                                   name="payment_method"
+                                   value="cash_on_delivery"
+                                   class="mt-1 accent-brand-500 shrink-0">
+                            <div class="flex-1">
+                                <span class="text-sm font-extrabold">Cash on Delivery</span>
+                                <p class="mt-1 text-xs text-ink/55 dark:text-orange-50/55">
+                                    Pay with cash when your order arrives. No additional fees.
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+                    @error('payment_method')
+                    <p class="mt-2 flex items-center gap-1 text-sm font-medium text-red-500">
+                        <i data-lucide="alert-circle" class="h-4 w-4"></i> {{ $message }}
+                    </p>
+                    @enderror
+                </div>
+
                 {{-- ── Estimated delivery info ── --}}
                 <div data-aos="fade-up" class="flex items-center gap-4 rounded-2xl bg-brand-500/8 border border-brand-500/20 px-5 py-4">
                     <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 text-white">
@@ -290,7 +335,7 @@
                             <span class="font-semibold">KSh {{ number_format($deliveryFee, 0) }}</span>
                         </div>
                         <div class="flex justify-between text-sm">
-                            <span class="text-ink/60 dark:text-orange-50/60">Tax (16%)</span>
+                            <span class="text-ink/60 dark:text-orange-50/60">Tax ({{ number_format($tax / $subtotal * 100, 0) }}%)</span>
                             <span class="font-semibold">KSh {{ number_format($tax, 0) }}</span>
                         </div>
                         <div class="flex justify-between border-t border-black/5 pt-3 dark:border-white/5">

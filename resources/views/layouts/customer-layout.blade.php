@@ -311,7 +311,7 @@
                     { label:'Menu',      icon:'utensils',         href:'{{ route('menu.index') }}',          badge:'', badgeDynamic:false, badgeId:'' },
                     { label:'Favorites', icon:'heart',            href:'{{ route('favorites.index') }}',     badge:'', badgeDynamic:true,  badgeId:'fav-sidebar-count' },
                     { label:'Addresses', icon:'map-pin',          href:'{{ route('addresses.index') }}',     badge:'', badgeDynamic:false, badgeId:'' },
-                    { label:'Payments',  icon:'credit-card',      href:'#',                                 badge:'', badgeDynamic:false, badgeId:'' },
+                    { label:'Payments',  icon:'credit-card',      href:'{{ route('payments.index') }}',     badge:'', badgeDynamic:false, badgeId:'' },
                     { label:'Profile',   icon:'user',             href:'{{ route('profile.edit') }}',        badge:'', badgeDynamic:false, badgeId:'' },
                     { label:'Settings',  icon:'settings',         href:'{{ route('settings.index') }}',       badge:'', badgeDynamic:false, badgeId:'' },
                 ],

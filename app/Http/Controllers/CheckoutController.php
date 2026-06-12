@@ -6,10 +6,16 @@ use App\Models\Address;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Settings;
+use App\Models\User;
+use App\Notifications\NewOrderNotification;
+use App\Notifications\OrderConfirmationNotification;
+use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class CheckoutController extends Controller
@@ -29,9 +35,12 @@ class CheckoutController extends Controller
                 ->with('error', 'Your cart is empty.');
         }
 
+        // Get settings for delivery fee and tax rate
+        $settings = Settings::getSettings();
+
         $subtotal    = $cartItems->sum(fn($i) => $i->dish->price * $i->quantity);
-        $deliveryFee = 200;
-        $tax         = round($subtotal * 0.16, 2);
+        $deliveryFee = $settings->delivery_fee;
+        $tax         = round($subtotal * ($settings->tax_rate / 100), 2);
         $total       = $subtotal + $deliveryFee + $tax;
 
         // Load saved addresses, default first
@@ -75,6 +84,7 @@ class CheckoutController extends Controller
             'phone'                => ['required_if:address_mode,manual', 'nullable', 'string', 'max:20'],
 
             'special_instructions' => ['nullable', 'string', 'max:1000'],
+            'payment_method'       => ['required', 'in:mpesa,cash_on_delivery'],
         ]);
 
         // Load cart
@@ -102,14 +112,17 @@ class CheckoutController extends Controller
             $phone           = $request->phone;
         }
 
+        // Get settings for delivery fee and tax rate
+        $settings = Settings::getSettings();
+
         // Totals
         $subtotal    = $cartItems->sum(fn($i) => $i->dish->price * $i->quantity);
-        $deliveryFee = 200;
-        $tax         = round($subtotal * 0.16, 2);
+        $deliveryFee = $settings->delivery_fee;
+        $tax         = round($subtotal * ($settings->tax_rate / 100), 2);
         $total       = $subtotal + $deliveryFee + $tax;
 
         // Persist inside a transaction
-        DB::transaction(function () use (
+        $order = DB::transaction(function () use (
             $request, $cartItems,
             $subtotal, $deliveryFee, $tax, $total,
             $deliveryAddress, $phone
@@ -126,6 +139,8 @@ class CheckoutController extends Controller
                 'phone'                   => $phone,
                 'special_instructions'    => $request->special_instructions,
                 'estimated_delivery_time' => now()->addMinutes(45),
+                'payment_method'          => $request->payment_method,
+                'payment_status'          => 'pending',
             ]);
 
             // 2. Create order items
@@ -140,7 +155,22 @@ class CheckoutController extends Controller
 
             // 3. Clear cart
             Cart::where('user_id', Auth::id())->delete();
+
+            // 4. Log order creation
+            AuditLogService::logOrderCreated($order);
+
+            return $order;
         });
+
+        // Send notifications after successful order creation
+        // Send order confirmation to customer
+        $order->user->notify(new OrderConfirmationNotification($order));
+
+        // Send new order notification to admin user
+        $adminUser = User::where('role', 'admin')->first();
+        if ($adminUser) {
+            $adminUser->notify(new NewOrderNotification($order));
+        }
 
         return redirect()->route('orders.success')
             ->with('success', 'Order placed successfully! We\'ll have it ready in ~45 minutes.');

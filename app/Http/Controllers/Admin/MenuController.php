@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Dish;
+use App\Services\AuditLogService;
+use App\Services\CacheService;
 use Illuminate\Http\Request;
 
 class MenuController extends Controller
@@ -60,7 +62,13 @@ class MenuController extends Controller
         $validated['is_bestseller'] = $request->has('is_bestseller');
 
         // Save to database
-        Dish::create($validated);
+        $dish = Dish::create($validated);
+
+        // Clear cache
+        CacheService::clearDishCache();
+
+        // Log menu creation
+        AuditLogService::logMenuCreated($dish);
 
         return redirect()->route('admin.menu.index')->with('success', '✅ Dish added successfully!');
     }
@@ -74,7 +82,9 @@ class MenuController extends Controller
     public function update(Request $request, $id)
     {
         $dish = Dish::findOrFail($id);
-        
+
+        $oldValues = $dish->only(['name', 'price', 'description']);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
@@ -115,12 +125,27 @@ class MenuController extends Controller
 
         $dish->update($validated);
 
+        // Clear cache
+        CacheService::clearDishCacheById($dish->id);
+        CacheService::clearDishCache();
+
+        // Log menu update
+        AuditLogService::logMenuUpdated($dish, $oldValues);
+
         return redirect()->route('admin.menu.index')->with('success', '✅ Dish updated successfully!');
     }
 
     public function destroy($id)
     {
         $dish = Dish::findOrFail($id);
+
+        // Clear cache
+        CacheService::clearDishCacheById($dish->id);
+        CacheService::clearDishCache();
+
+        // Log menu deletion
+        AuditLogService::logMenuDeleted($dish);
+
         $dish->delete();
 
         return redirect()->route('admin.menu.index')->with('success', '✅ Dish deleted successfully!');

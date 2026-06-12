@@ -115,4 +115,15 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Email
+    |--------------------------------------------------------------------------
+    |
+    | This is the email address where admin notifications will be sent.
+    |
+    */
+
+    'admin_email' => env('ADMIN_EMAIL', 'admin@cafedelight.com'),
+
 ];

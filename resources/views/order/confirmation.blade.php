@@ -161,6 +161,27 @@
         </div>
     </div>
 
+    {{-- Payment details --}}
+    <div data-aos="fade-up" class="rounded-3xl glass p-6 shadow-soft">
+        <h2 class="mb-5 text-base font-extrabold">Payment Details</h2>
+        <div class="space-y-3">
+            <div class="flex items-center gap-3">
+                <i data-lucide="credit-card" class="h-5 w-5 shrink-0 text-brand-600"></i>
+                <div>
+                    <p class="text-xs font-semibold text-ink/45 dark:text-orange-50/45">Payment Method</p>
+                    <p class="font-semibold">{{ $order->paymentMethodLabel() }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <i data-lucide="check-circle" class="h-5 w-5 shrink-0 text-brand-600"></i>
+                <div>
+                    <p class="text-xs font-semibold text-ink/45 dark:text-orange-50/45">Payment Status</p>
+                    <div class="font-semibold">{!! $order->payment_status_badge !!}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Actions --}}
     <div data-aos="fade-up" class="flex flex-wrap gap-3">
         @if(in_array($order->status, ['pending', 'confirmed']))
@@ -173,6 +194,19 @@
             </button>
         </form>
         @endif
+
+        {{-- Mark as Paid button for cash on delivery orders that are delivered --}}
+        @if($order->payment_method === 'cash_on_delivery' && $order->status === 'delivered' && in_array($order->payment_status, ['pending', 'awaiting_approval']))
+        <form method="POST" action="{{ route('order.markPaid', $order) }}">
+            @csrf
+            <button type="submit"
+                    onclick="return confirm('Confirm that you have paid KSh {{ number_format($order->total, 0) }} for this order?')"
+                    class="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-soft transition hover:scale-105">
+                <i data-lucide="check-circle" class="h-4 w-4"></i> Mark as Paid
+            </button>
+        </form>
+        @endif
+
         <a href="{{ route('menu.index') }}"
            class="flex items-center gap-2 rounded-xl glass px-5 py-3 text-sm font-bold transition hover:bg-brand-500/10 hover:text-brand-600">
             <i data-lucide="utensils" class="h-4 w-4"></i> Order Again

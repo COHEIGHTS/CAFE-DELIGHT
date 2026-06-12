@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\Dish;
+use App\Models\Settings;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
@@ -13,7 +14,13 @@ class CartController extends Controller
         $cartItems = auth()->user()->cartItems()->with('dish')->get();
         $total = $cartItems->sum(fn($item) => $item->dish->price * $item->quantity);
 
-        return view('cart.index', compact('cartItems', 'total'));
+        // Get settings for delivery fee and tax rate
+        $settings = Settings::getSettings();
+        $deliveryFee = $settings->delivery_fee;
+        $tax = round($total * ($settings->tax_rate / 100), 2);
+        $grandTotal = $total + $deliveryFee + $tax;
+
+        return view('cart.index', compact('cartItems', 'total', 'deliveryFee', 'tax', 'grandTotal'));
     }
 
     public function add(Request $request, $dishId)

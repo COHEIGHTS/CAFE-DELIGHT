@@ -311,21 +311,19 @@
                 nav: {
                     overview: [
                         { label: 'Dashboard',  icon: 'layout-dashboard', href: '{{ route('admin.dashboard') }}', badge: '' },
-                        { label: 'Analytics',  icon: 'bar-chart-2',      href: '#',                              badge: '' },
+                        { label: 'Analytics',  icon: 'bar-chart-2',      href: '{{ route('admin.analytics.index') }}', badge: '' },
                     ],
                     manage: [
                         // ── Orders: href now points to the real route; badge shows live pending count ──
                         { label: 'Orders',     icon: 'shopping-bag',     href: '{{ route('admin.order.index') }}', badge: '{{ \App\Models\Order::where('status','pending')->count() ?: '' }}' },
                         { label: 'Menu Items', icon: 'utensils',         href: '{{ route('admin.menu.index') }}',  badge: '' },
                         { label: 'Add Dish',   icon: 'plus-circle',      href: '{{ route('admin.menu.create') }}', badge: '' },
-                        { label: 'Customers',  icon: 'users',            href: '#', badge: '' },
-                        { label: 'Staff',      icon: 'user-check',       href: '#', badge: '' },
-                        { label: 'Payments',   icon: 'credit-card',      href: '#', badge: '' },
-                        { label: 'Inventory',  icon: 'package',          href: '#', badge: '3' },
+                        { label: 'Customers',  icon: 'users',            href: '{{ route('admin.customers.index') }}', badge: '' },
+                        { label: 'Payments',   icon: 'credit-card',      href: '{{ route('admin.payments.index') }}', badge: '{{ \App\Models\Order::where('payment_status','awaiting_approval')->count() ?: '' }}' },
                     ],
                     system: [
-                        { label: 'Settings',   icon: 'settings',         href: '#' },
-                        { label: 'Audit Log',  icon: 'shield-check',     href: '#' },
+                        { label: 'Settings',   icon: 'settings',         href: '{{ route('admin.settings.index') }}' },
+                        { label: 'Audit Log',  icon: 'shield-check',     href: '{{ route('admin.audit-logs.index') }}' },
                     ],
                 },
 

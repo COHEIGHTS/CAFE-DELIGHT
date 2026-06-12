@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -26,16 +28,18 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        $request->session()->regenerate();
-
         $user = Auth::user();
 
-        // Admins → /admin/dashboard | Customers → /dashboard
-        return redirect()->intended(
-            $user->isAdmin()
-                ? route('admin.dashboard', absolute: false)
-                : route('dashboard', absolute: false)
-        );
+        // Store user ID in session for OTP verification
+        Session::put('otp_user_id', $user->id);
+        Session::put('otp_type', 'login');
+
+        // Generate and send OTP for login verification
+        $otpService = app(\App\Services\OtpService::class);
+        $otpService->generate($user, 'login');
+
+        // Redirect to OTP verification page without logging out
+        return redirect()->route('otp.verify')->with('success', 'Login successful! Please check your email for the OTP code.');
     }
 
     /**
@@ -43,6 +47,9 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // Log logout activity
+        AuditLogService::logLogout();
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

@@ -8,9 +8,21 @@
 <div class="space-y-8" data-aos="fade-up">
 
     {{-- Header --}}
-    <div>
-        <h1 class="font-display text-3xl font-bold">My Orders</h1>
-        <p class="mt-2 text-ink/60 dark:text-orange-50/60">Track and manage your orders</p>
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <h1 class="font-display text-3xl font-bold">My Orders</h1>
+            <p class="mt-2 text-ink/60 dark:text-orange-50/60">Track and manage your orders</p>
+        </div>
+        {{-- Search --}}
+        <form method="GET" action="{{ route('order.index') }}" class="flex items-center gap-2">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search orders..."
+                   class="rounded-xl border border-black/10 bg-white/50 px-4 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-white/10 dark:bg-ink/50 w-64">
+            @if(request('search'))
+            <a href="{{ route('order.index') }}" class="flex items-center gap-2 rounded-xl glass px-4 py-2.5 text-sm font-bold transition hover:bg-brand-500/10">
+                <i data-lucide="x" class="h-4 w-4"></i> Clear
+            </a>
+            @endif
+        </form>
     </div>
 
     @if($orders->count() > 0)
@@ -52,6 +64,7 @@
                     <div class="text-sm">
                         <p class="text-ink/60 dark:text-orange-50/60">📍 {{ $order->delivery_address }}</p>
                         <p class="text-ink/60 dark:text-orange-50/60">🚚 Est. Delivery: {{ $order->estimated_delivery_time->format('h:i A') }}</p>
+                        <p class="text-ink/60 dark:text-orange-50/60 mt-1">💳 {{ $order->paymentMethodLabel() }} • {!! $order->payment_status_badge !!}</p>
                     </div>
                     <div class="flex gap-2">
                         <a href="{{ route('order.confirmation', $order) }}" class="inline-flex items-center gap-2 bg-brand-600 text-white font-bold px-4 py-2 rounded-lg hover:scale-105 transition text-sm">

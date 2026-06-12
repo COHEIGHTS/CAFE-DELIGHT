@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Dish;
 use App\Models\Favorite;
+use App\Services\CacheService;
 use Illuminate\Http\Request;
 
 class MenuController extends Controller
 {
     public function index()
     {
-        $dishes         = Dish::all();
+        $dishes         = CacheService::getAllDishes();
         $categories     = ['mains', 'appetizers', 'desserts', 'beverages', 'sides'];
         $activeCategory = null;
 
@@ -22,7 +23,7 @@ class MenuController extends Controller
 
     public function show($id)
     {
-        $dish = Dish::findOrFail($id);
+        $dish = CacheService::getDishById($id) ?? Dish::findOrFail($id);
 
         $isFavorited = Favorite::where('user_id', auth()->id())
             ->where('dish_id', $id)
@@ -33,7 +34,7 @@ class MenuController extends Controller
 
     public function filterByCategory($category)
     {
-        $dishes         = Dish::where('category', $category)->get();
+        $dishes         = CacheService::getDishesByCategory($category);
         $categories     = ['mains', 'appetizers', 'desserts', 'beverages', 'sides'];
         $activeCategory = $category;
 

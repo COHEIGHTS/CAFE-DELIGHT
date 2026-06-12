@@ -19,6 +19,8 @@ class Order extends Model
         'phone',
         'special_instructions',
         'estimated_delivery_time',
+        'payment_method',
+        'payment_status',
     ];
 
     protected $casts = [
@@ -73,6 +75,49 @@ class Order extends Model
             'delivered'  => 'bg-emerald-500/15 text-emerald-600',
             'cancelled'  => 'bg-red-500/15 text-red-600',
             default      => 'bg-ink/10 text-ink',
+        };
+    }
+
+    // Payment method label
+    public function paymentMethodLabel(): string
+    {
+        return match($this->payment_method) {
+            'mpesa'             => 'M-Pesa',
+            'cash_on_delivery' => 'Cash on Delivery',
+            default            => ucfirst($this->payment_method),
+        };
+    }
+
+    // Payment status label
+    public function paymentStatusLabel(): string
+    {
+        return match($this->payment_status) {
+            'pending'            => 'Pending',
+            'paid'               => 'Paid',
+            'failed'             => 'Failed',
+            'awaiting_approval'  => 'Awaiting Approval',
+            default              => ucfirst($this->payment_status),
+        };
+    }
+
+    // Payment status badge HTML
+    public function getPaymentStatusBadgeAttribute(): string
+    {
+        return '<span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ' . $this->paymentStatusClass() . '">
+            <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
+            ' . $this->paymentStatusLabel() . '
+        </span>';
+    }
+
+    // Payment status CSS class
+    public function paymentStatusClass(): string
+    {
+        return match($this->payment_status) {
+            'pending'            => 'bg-amber-500/15 text-amber-600',
+            'paid'               => 'bg-emerald-500/15 text-emerald-600',
+            'failed'             => 'bg-red-500/15 text-red-600',
+            'awaiting_approval'  => 'bg-blue-500/15 text-blue-600',
+            default              => 'bg-ink/10 text-ink',
         };
     }
 }

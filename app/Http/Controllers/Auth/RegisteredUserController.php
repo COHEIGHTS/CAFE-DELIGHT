@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\OtpService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -46,13 +48,15 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
+        // Generate and send OTP for registration verification
+        $otpService = app(OtpService::class);
+        $otpService->generate($user, 'registration');
 
-        // Read the actual role from the freshly saved user and redirect accordingly
-        return redirect(
-            $user->isAdmin()
-                ? route('admin.dashboard', absolute: false)
-                : route('dashboard', absolute: false)
-        );
+        // Store user ID in session for OTP verification
+        Session::put('otp_user_id', $user->id);
+        Session::put('otp_type', 'registration');
+
+        // Redirect to OTP verification page instead of logging in directly
+        return redirect()->route('otp.verify')->with('success', 'Registration successful! Please check your email for the OTP code.');
     }
 }
