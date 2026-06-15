@@ -91,6 +91,12 @@
                         <p class="text-xs text-ink/45 dark:text-orange-50/45 font-semibold">Total</p>
                         <p class="font-extrabold text-brand-600">KSh {{ number_format($order->total, 0) }}</p>
                     </div>
+
+                    {{-- Payment status badge --}}
+                    <div>
+                        <p class="text-xs text-ink/45 dark:text-orange-50/45 font-semibold">Payment</p>
+                        <div>{!! $order->payment_status_badge !!}</div>
+                    </div>
                 </div>
 
                 {{-- Status badge --}}
@@ -237,6 +243,21 @@
                         </div>
                         @endif
 
+                        {{-- Payment approval action for cash on delivery --}}
+                        @if($order->payment_method === 'cash_on_delivery' && $order->payment_status === 'awaiting_approval')
+                        <div>
+                            <p class="mb-3 text-xs font-extrabold uppercase tracking-widest text-ink/40 dark:text-orange-50/40">Payment Approval</p>
+                            <form method="POST" action="{{ route('admin.order.approvePayment', $order) }}"
+                                  onsubmit="return confirm('Confirm that payment of KSh {{ number_format($order->total, 0) }} has been received?')">
+                                @csrf
+                                <button type="submit"
+                                        class="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-soft transition hover:scale-105">
+                                    <i data-lucide="check-circle" class="h-4 w-4"></i> Approve Payment
+                                </button>
+                            </form>
+                        </div>
+                        @endif
+
                     </div>
                 </div>
             </div>
@@ -252,7 +273,38 @@
 
     {{-- Pagination --}}
     @if($orders->hasPages())
-    <div class="flex justify-center">{{ $orders->links() }}</div>
+    <div class="flex items-center justify-between">
+        <p class="text-sm text-ink/55 dark:text-orange-50/55">
+            Showing {{ $orders->firstItem() }} to {{ $orders->lastItem() }} of {{ $orders->total() }} results
+        </p>
+        <div class="flex items-center gap-2">
+            @if($orders->onFirstPage())
+            <span class="rounded-lg px-3 py-2 text-sm font-semibold text-ink/40 dark:text-orange-50/40">Previous</span>
+            @else
+            <a href="{{ $orders->previousPageUrl() }}" class="rounded-lg glass px-3 py-2 text-sm font-semibold transition hover:bg-brand-500/10 hover:text-brand-600">
+                Previous
+            </a>
+            @endif
+
+            @foreach($orders->getUrlRange(1, $orders->lastPage()) as $page => $url)
+            @if($page == $orders->currentPage())
+            <span class="rounded-lg bg-brand-600 px-3 py-2 text-sm font-bold text-white">{{ $page }}</span>
+            @else
+            <a href="{{ $url }}" class="rounded-lg glass px-3 py-2 text-sm font-semibold transition hover:bg-brand-500/10 hover:text-brand-600">
+                {{ $page }}
+            </a>
+            @endif
+            @endforeach
+
+            @if($orders->hasMorePages())
+            <a href="{{ $orders->nextPageUrl() }}" class="rounded-lg glass px-3 py-2 text-sm font-semibold transition hover:bg-brand-500/10 hover:text-brand-600">
+                Next
+            </a>
+            @else
+            <span class="rounded-lg px-3 py-2 text-sm font-semibold text-ink/40 dark:text-orange-50/40">Next</span>
+            @endif
+        </div>
+    </div>
     @endif
 
 </div>

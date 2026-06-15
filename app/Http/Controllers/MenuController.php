@@ -3,33 +3,51 @@
 namespace App\Http\Controllers;
 
 use App\Models\Dish;
+use App\Models\Favorite;
+use App\Services\CacheService;
 use Illuminate\Http\Request;
 
 class MenuController extends Controller
 {
     public function index()
     {
-        $dishes = Dish::all();
-        $categories = ['mains', 'appetizers', 'desserts', 'beverages', 'sides'];
+        $dishes         = CacheService::getAllDishes();
+        $categories     = ['mains', 'appetizers', 'desserts', 'beverages', 'sides'];
         $activeCategory = null;
-        
-        return view('menu.index', compact('dishes', 'categories', 'activeCategory'));
+
+        $userFavorites = Favorite::where('user_id', auth()->id())
+            ->pluck('dish_id');
+
+        return view('menu.index', compact('dishes', 'categories', 'activeCategory', 'userFavorites'));
     }
 
     public function show($id)
     {
+<<<<<<< HEAD
         $dish = Dish::findOrFail($id);
         $isFavourited = auth()->user()->favourites()->where('dish_id', $id)->exists();
 
         return view('menu.show', compact('dish', 'isFavourited'));
+=======
+        $dish = CacheService::getDishById($id) ?? Dish::findOrFail($id);
+
+        $isFavorited = Favorite::where('user_id', auth()->id())
+            ->where('dish_id', $id)
+            ->exists();
+
+        return view('menu.show', compact('dish', 'isFavorited'));
+>>>>>>> ac3157b08bb2e1d4dcb151a9b1a7c2ab15666346
     }
 
     public function filterByCategory($category)
     {
-        $dishes = Dish::where('category', $category)->get();
-        $categories = ['mains', 'appetizers', 'desserts', 'beverages', 'sides'];
+        $dishes         = CacheService::getDishesByCategory($category);
+        $categories     = ['mains', 'appetizers', 'desserts', 'beverages', 'sides'];
         $activeCategory = $category;
-        
-        return view('menu.index', compact('dishes', 'categories', 'activeCategory'));
+
+        $userFavorites = Favorite::where('user_id', auth()->id())
+            ->pluck('dish_id');
+
+        return view('menu.index', compact('dishes', 'categories', 'activeCategory', 'userFavorites'));
     }
 }

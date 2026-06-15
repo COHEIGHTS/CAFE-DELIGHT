@@ -156,13 +156,13 @@
                         <p class="truncate text-sm font-bold">{{ $dish->name }}</p>
                         <p class="text-xs font-semibold text-brand-600">KSh {{ number_format($dish->price, 0) }}</p>
                     </div>
-                    <form method="POST" action="{{ route('cart.add', $dish->id) }}">
-                        @csrf
-                        <button type="submit"
-                                class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white transition hover:scale-110">
-                            <i data-lucide="plus" class="h-4 w-4"></i>
-                        </button>
-                    </form>
+
+                    {{-- ✅ fetch-based button — no form, no page navigation --}}
+                    <button type="button"
+                            onclick="quickReorder({{ $dish->id }}, this)"
+                            class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 text-white transition hover:scale-110 disabled:opacity-60 disabled:cursor-not-allowed">
+                        <i data-lucide="plus" class="h-4 w-4"></i>
+                    </button>
                 </div>
                 @endforeach
             </div>
@@ -172,6 +172,26 @@
     </div>
 
 </div>
+
+{{-- ===== Reorder success mini-popup ===== --}}
+<div id="reorder-popup"
+     class="fixed bottom-6 right-6 z-50 hidden items-center gap-3
+            bg-white dark:bg-gray-900 border border-black/5 dark:border-white/10
+            rounded-2xl shadow-premium px-5 py-4 max-w-xs w-full
+            opacity-0 translate-y-3 transition-all duration-300">
+    <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-green-100 dark:bg-green-500/20">
+        <i data-lucide="check" class="h-5 w-5 text-green-500"></i>
+    </div>
+    <div class="flex-1 min-w-0">
+        <p id="reorder-popup-title" class="text-sm font-bold truncate"></p>
+        <p class="text-xs text-ink/50 dark:text-orange-50/50">Added to your cart</p>
+    </div>
+    <a href="{{ route('cart.index') }}"
+       class="shrink-0 text-xs font-bold text-brand-600 hover:underline">
+        View
+    </a>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -179,6 +199,107 @@
     document.addEventListener('DOMContentLoaded', () => {
         if (window.lucide) lucide.createIcons();
         if (window.AOS) AOS.init({ duration: 600, once: true, easing: 'ease-out-cubic' });
+        updateCartCount();
     });
+
+    let reorderTimer = null;
+
+    function quickReorder(dishId, btn) {
+        // Disable button and show spinner
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i>';
+        if (window.lucide) lucide.createIcons();
+
+        fetch(`/cart/add/${dishId}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Content-Type': 'application/json',
+                'Accept':       'application/json',
+            },
+            body: JSON.stringify({ quantity: 1 })
+        })
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(data => {
+            if (data.success) {
+                // Update cart badge
+                updateCartCount(data.cartCount);
+
+                // Show success state on button
+                btn.innerHTML = '<i data-lucide="check" class="h-4 w-4"></i>';
+                if (window.lucide) lucide.createIcons();
+
+                // Show mini popup
+                showReorderPopup(data.message.replace(' added to cart!', ''));
+
+                // Reset button after 2s
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="plus" class="h-4 w-4"></i>';
+                    if (window.lucide) lucide.createIcons();
+                }, 2000);
+            } else {
+                resetReorderBtn(btn);
+            }
+        })
+        .catch(() => resetReorderBtn(btn));
+    }
+
+    function resetReorderBtn(btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="plus" class="h-4 w-4"></i>';
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function showReorderPopup(dishName) {
+        clearTimeout(reorderTimer);
+
+        const popup = document.getElementById('reorder-popup');
+        document.getElementById('reorder-popup-title').textContent = dishName;
+
+        // Show
+        popup.classList.remove('hidden');
+        popup.style.display = 'flex';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            popup.classList.remove('opacity-0', 'translate-y-3');
+            popup.classList.add('opacity-100', 'translate-y-0');
+        }));
+
+        if (window.lucide) lucide.createIcons();
+
+        // Auto-hide after 3s
+        reorderTimer = setTimeout(() => {
+            popup.classList.remove('opacity-100', 'translate-y-0');
+            popup.classList.add('opacity-0', 'translate-y-3');
+            setTimeout(() => {
+                popup.classList.add('hidden');
+                popup.style.display = '';
+            }, 300);
+        }, 3000);
+    }
+
+    // updateCartCount is defined globally in app.blade.php
+    // but re-defined here as fallback in case layout differs
+    if (typeof updateCartCount === 'undefined') {
+        function updateCartCount(count = null) {
+            if (count !== null) {
+                const badge = document.getElementById('cart-count');
+                if (badge) {
+                    badge.textContent   = count;
+                    badge.style.display = count > 0 ? 'grid' : 'none';
+                }
+                return;
+            }
+            fetch('/cart/count', { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json())
+                .then(d => {
+                    const badge = document.getElementById('cart-count');
+                    if (badge) {
+                        badge.textContent   = d.count;
+                        badge.style.display = d.count > 0 ? 'grid' : 'none';
+                    }
+                }).catch(() => {});
+        }
+    }
 </script>
 @endpush

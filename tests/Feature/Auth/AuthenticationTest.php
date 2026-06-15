@@ -26,8 +26,8 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        // After login, user is redirected to OTP verification
+        $response->assertRedirect(route('otp.verify', absolute: false));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

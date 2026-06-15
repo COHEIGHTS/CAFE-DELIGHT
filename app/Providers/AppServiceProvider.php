@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Enable query logging for monitoring (only in local environment)
+        if ($this->app->environment('local')) {
+            DB::listen(function ($query) {
+                Log::channel('query')->info($query->sql, $query->bindings);
+            });
+        }
     }
 }

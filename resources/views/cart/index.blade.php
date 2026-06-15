@@ -79,17 +79,17 @@
                     </div>
                     <div class="flex justify-between text-sm">
                         <span class="text-ink/60 dark:text-orange-50/60">Delivery Fee</span>
-                        <span class="font-semibold">KSh 200</span>
+                        <span class="font-semibold">KSh {{ number_format($deliveryFee, 0) }}</span>
                     </div>
                     <div class="flex justify-between text-sm">
-                        <span class="text-ink/60 dark:text-orange-50/60">Tax (16%)</span>
-                        <span class="font-semibold">KSh {{ number_format($total * 0.16, 0) }}</span>
+                        <span class="text-ink/60 dark:text-orange-50/60">Tax ({{ number_format($tax / $total * 100, 0) }}%)</span>
+                        <span class="font-semibold">KSh {{ number_format($tax, 0) }}</span>
                     </div>
                 </div>
 
                 <div class="flex justify-between items-center mb-6">
                     <span class="font-bold text-lg">Total</span>
-                    <span class="text-2xl font-extrabold text-gradient">KSh {{ number_format($total + 200 + ($total * 0.16), 0) }}</span>
+                    <span class="text-2xl font-extrabold text-gradient">KSh {{ number_format($grandTotal, 0) }}</span>
                 </div>
 
                 {{-- ↓ CHANGED: button → anchor tag routed to checkout.index --}}

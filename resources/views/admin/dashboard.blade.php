@@ -239,7 +239,7 @@
                        class="flex flex-col items-center gap-1.5 rounded-xl bg-brand-500/10 px-3 py-3 text-xs font-bold text-brand-600 transition hover:bg-brand-500/20">
                         <i data-lucide="utensils" class="h-5 w-5"></i> Menu
                     </a>
-                    <a href="#"
+                    <a href="{{ route('admin.analytics.index') }}"
                        class="flex flex-col items-center gap-1.5 rounded-xl bg-brand-500/10 px-3 py-3 text-xs font-bold text-brand-600 transition hover:bg-brand-500/20">
                         <i data-lucide="bar-chart-2" class="h-5 w-5"></i> Analytics
                     </a>
