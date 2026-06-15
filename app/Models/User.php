@@ -71,4 +71,8 @@ class User extends Authenticatable
     {
         return $this->role === 'customer';
     }
+    public function favourites(): \Illuminate\Database\Eloquent\Relations\HasMany
+{
+    return $this->hasMany(Favourite::class);
+}
 }

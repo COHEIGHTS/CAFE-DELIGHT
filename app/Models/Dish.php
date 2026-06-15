@@ -30,4 +30,9 @@ class Dish extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function favouritedBy(): HasMany
+    {
+        return $this->hasMany(Favourite::class);
+    }
 }

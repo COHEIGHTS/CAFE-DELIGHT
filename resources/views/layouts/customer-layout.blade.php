@@ -235,6 +235,9 @@
                             <a href="{{ route('order.index') }}" class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition hover:bg-brand-500/10 hover:text-brand-600">
                                 <i data-lucide="shopping-bag" class="h-4 w-4"></i> My Orders
                             </a>
+                            <a href="{{ route('favourites.index') }}" class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition hover:bg-brand-500/10 hover:text-brand-600">
+                                <i data-lucide="heart" class="h-4 w-4"></i> My Favourites
+                            </a>
                             <a href="#" class="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition hover:bg-brand-500/10 hover:text-brand-600">
                                 <i data-lucide="settings" class="h-4 w-4"></i> Settings
                             </a>
@@ -272,14 +275,14 @@
                 active: '{{ $activeNav ?? 'Dashboard' }}',
 
                 nav: [
-                    { label:'Dashboard', icon:'layout-dashboard', href:'{{ route('dashboard') }}',       badge:'' },
-                    { label:'My Orders', icon:'shopping-bag',     href:'{{ route('order.index') }}',     badge:'' },
-                    { label:'Menu',      icon:'utensils',         href:'{{ route('menu.index') }}',       badge:'' },
-                    { label:'Favorites', icon:'heart',            href:'#',                              badge:'8' },
-                    { label:'Addresses', icon:'map-pin',          href:'#',                              badge:'' },
-                    { label:'Payments',  icon:'credit-card',      href:'#',                              badge:'' },
-                    { label:'Profile',   icon:'user',             href:'#',                              badge:'' },
-                    { label:'Settings',  icon:'settings',         href:'#',                              badge:'' },
+                    { label:'Dashboard', icon:'layout-dashboard', href:'{{ route('dashboard') }}',          badge:'' },
+                    { label:'My Orders', icon:'shopping-bag',     href:'{{ route('order.index') }}',        badge:'' },
+                    { label:'Menu',      icon:'utensils',         href:'{{ route('menu.index') }}',          badge:'' },
+                    { label:'Favorites', icon:'heart',            href:'{{ route('favourites.index') }}',    badge:'{{ auth()->user()->favourites()->count() ?: '' }}' },
+                    { label:'Addresses', icon:'map-pin',          href:'#',                                  badge:'' },
+                    { label:'Payments',  icon:'credit-card',      href:'#',                                  badge:'' },
+                    { label:'Profile',   icon:'user',             href:'#',                                  badge:'' },
+                    { label:'Settings',  icon:'settings',         href:'#',                                  badge:'' },
                 ],
 
                 init() {
@@ -297,6 +300,12 @@
 
                     // Initialize cart count on load
                     updateCartCount();
+
+                    // Listen for favourites toggle updates from menu page
+                    window.addEventListener('favourites-updated', (e) => {
+                        const fav = this.nav.find(n => n.label === 'Favorites');
+                        if (fav) fav.badge = e.detail.count > 0 ? String(e.detail.count) : '';
+                    });
                 },
 
                 toggleDark() {
@@ -317,6 +326,31 @@
                     }
                 })
                 .catch(err => console.error('Cart count error:', err));
+        }
+
+        function toggleFavourite(dishId, btn) {
+            fetch(`/favourites/toggle/${dishId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Toggle heart button appearance
+                    if (btn) {
+                        btn.classList.toggle('text-red-500', data.favourited);
+                        btn.classList.toggle('fill-red-500', data.favourited);
+                    }
+                    // Update sidebar badge live
+                    window.dispatchEvent(new CustomEvent('favourites-updated', {
+                        detail: { count: data.favouriteCount }
+                    }));
+                }
+            })
+            .catch(err => console.error('Favourite toggle error:', err));
         }
     </script>
 

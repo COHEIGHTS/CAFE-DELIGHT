@@ -19,7 +19,9 @@ class MenuController extends Controller
     public function show($id)
     {
         $dish = Dish::findOrFail($id);
-        return view('menu.show', compact('dish'));
+        $isFavourited = auth()->user()->favourites()->where('dish_id', $id)->exists();
+
+        return view('menu.show', compact('dish', 'isFavourited'));
     }
 
     public function filterByCategory($category)

@@ -8,6 +8,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FavouriteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -44,6 +45,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/orders/success', fn () => view('order-success'))->name('orders.success');
     Route::get('/order/{order}', [OrderController::class, 'show'])->name('order.confirmation');
     Route::post('/order/{order}/cancel', [OrderController::class, 'cancel'])->name('order.cancel');
+
+    // Favourites
+    Route::get('/favourites', [FavouriteController::class, 'index'])->name('favourites.index');
+    Route::post('/favourites/toggle/{dish}', [FavouriteController::class, 'toggle'])->name('favourites.toggle');
 });
 
 // ── Profile ───────────────────────────────────────────────────────────────────
